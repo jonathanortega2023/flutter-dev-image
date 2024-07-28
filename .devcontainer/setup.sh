@@ -1,78 +1,92 @@
 #!/bin/bash
-# Check for cmdline-tools in Android-SDK
-DIR="/usr/lib/android-sdk/cmdline-tools/"
-if [ -d $DIR ]
-then
-    echo "cmdline-tools already installed"
-else
-    # Set up if $cmdline-tools aren't installed.#
-    echo "Installing cmdline-tools in ${DIR}..."
-    # Download, create folder structure, and set permissions for Android SDK
-    wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-    unzip commandlinetools*.zip
-    mv ./cmdline-tools/ ./latest
-    mkdir cmdline-tools
-    mv latest/ cmdline-tools/
-    rm commandlinetools*.zip
-    mv cmdline-tools/ /usr/lib/android-sdk/
-    chown $USER:$USER /usr/lib/android-sdk/ -R
-    ln -s /usr/lib/android-sdk/cmdline-tools/latest/bin/sdkmanager /usr/sbin/sdkmanager
-    ln -s /usr/lib/android-sdk/platform-tools/adb /usr/sbin/adb
-    echo "cmdline-tools installed"
-    echo "sdkmanager & adb symbolically linked" 
-fi
-# Update/accept licences
-yes | sdkmanager --update
-yes | sdkmanager --licenses
-# Check for Chrome
-if [ -x  "/usr/bin/google-chrome" ]
-then
-    echo "Chrome already installed"
-else
-    # Download and install chrome
-    wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-    apt install -y ./google-chrome*.deb
-    rm google-chrome*.deb
-    echo "Chrome installed"
+
+set -e
+
+ANDROID_SDK_DIR="/usr/lib/android-sdk"
+CMDLINE_TOOLS_DIR="$ANDROID_SDK_DIR/cmdline-tools"
+BUILD_TOOLS_VERSION="34.0.0"
+CMDLINE_TOOLS_URL="https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
+FLUTTER_DIR="/usr/lib/flutter"
+FLUTTER_GIT_URL="https://github.com/flutter/flutter.git"
+CHROME_URL="https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
+
+# Install cmdline-tools if not already installed
+if [ ! -d "$CMDLINE_TOOLS_DIR" ]; then
+    echo "Installing cmdline-tools in ${CMDLINE_TOOLS_DIR}..."
+    wget $CMDLINE_TOOLS_URL -O commandlinetools.zip
+    unzip commandlinetools.zip -d /tmp/cmdline-tools
+    mkdir -p $CMDLINE_TOOLS_DIR/latest
+    mv /tmp/cmdline-tools/cmdline-tools/* $CMDLINE_TOOLS_DIR/latest/
+    rm -rf /tmp/cmdline-tools commandlinetools.zip
+    chown -R $USER:$USER $ANDROID_SDK_DIR
+    ln -sf $CMDLINE_TOOLS_DIR/latest/bin/sdkmanager /usr/sbin/sdkmanager
+    ln -sf $ANDROID_SDK_DIR/platform-tools/adb /usr/sbin/adb
+    echo "cmdline-tools installed and linked"
 fi
 
-# Check for Flutter
-DIR="/usr/lib/flutter/"
-if [ -d $DIR ]
-then
-    echo "Flutter already installed"
-else
-    # Download and set path/permissions for flutter, then update and verify
-    git clone https://github.com/flutter/flutter.git -b stable $DIR
-    ln -s /usr/lib/flutter/bin/dart /usr/sbin/dart
-    ln -s /usr/lib/flutter/bin/flutter /usr/sbin/flutter
-    flutter precache
-    chown $USER:$USER /usr/lib/flutter/ -R
-    echo "flutter installed and symbolically linked to /usr/sbin/flutter"
+# Update and accept licenses
+yes | sdkmanager --update
+yes | sdkmanager --licenses
+yes | sdkmanager "build-tools;$BUILD_TOOLS_VERSION"
+
+# Remove inconsistent build-tools directories
+if [ -d "$ANDROID_SDK_DIR/build-tools/debian" ]; then
+    rm -rf "$ANDROID_SDK_DIR/build-tools/debian"
 fi
+if [ -d "$ANDROID_SDK_DIR/build-tools/29.0.3" ]; then
+    rm -rf "$ANDROID_SDK_DIR/build-tools/29.0.3"
+fi
+echo "Removed inconsistent build-tools dirs"
+
+# Install latest platform
+latest_platform=$(sdkmanager --list | grep "platforms;android-" | sort -V | tail -1 | awk '{print $1}')
+yes | sdkmanager "$latest_platform"
+echo "Installed latest platform"
+
+# Install Chrome if not already installed
+if [ ! -x "/usr/bin/google-chrome" ]; then
+    wget $CHROME_URL -O google-chrome.deb
+    apt install -y ./google-chrome.deb
+    rm google-chrome.deb
+    echo "Chrome installed"
+else
+    echo "Chrome already installed"
+fi
+
+# Install Flutter if not already installed
+if [ ! -d "$FLUTTER_DIR" ]; then
+    git clone $FLUTTER_GIT_URL -b stable $FLUTTER_DIR
+    ln -sf $FLUTTER_DIR/bin/dart /usr/sbin/dart
+    ln -sf $FLUTTER_DIR/bin/flutter /usr/sbin/flutter
+    flutter precache
+    chown -R $USER:$USER $FLUTTER_DIR
+    echo "Flutter installed and linked"
+else
+    echo "Flutter already installed"
+fi
+
+# Configure Flutter for web and mobile
 flutter config --no-enable-linux-desktop
 flutter config --no-enable-macos-desktop
 flutter config --no-enable-windows-desktop
-echo "flutter configured for web and mobile"
+echo "Flutter configured for web and mobile"
 flutter doctor
 
-if [ "$1" = "--install-flutterfire" ]; then
-    # Check for Firebase-CLI
-    FILE="/usr/lib/firebase"
-    if [ -f $FILE ]
-    then
-        echo "Firebase-CLI already installed"
-    else
-        # Download and install firebase-cli
-        wget -O firebase https://firebase.tools/bin/linux/latest
-        mv firebase /usr/lib/
+# Optionally install Firebase CLI and FlutterFire CLI
+if [ "$INSTALL_FLUTTERFIRE" = "true" ]; then
+    if [ ! -f /usr/lib/firebase ]; then
+        wget -O /usr/lib/firebase https://firebase.tools/bin/linux/latest
         chmod +x /usr/lib/firebase
         chown $USER:$USER /usr/lib/firebase
-        ln -s /usr/lib/firebase /usr/sbin/firebase
+        ln -sf /usr/lib/firebase /usr/sbin/firebase
         firebase login
         dart pub global activate flutterfire_cli
+        echo "Firebase CLI and FlutterFire CLI installed"
+    else
+        echo "Firebase CLI already installed"
     fi
 fi
 
-chown $USER:$USER /usr/lib/android-sdk/ -R
-chown $USER:$USER /workspaces/ -R
+# Ensure proper ownership of directories
+chown -R $USER:$USER $ANDROID_SDK_DIR
+chown -R $USER:$USER /workspaces
