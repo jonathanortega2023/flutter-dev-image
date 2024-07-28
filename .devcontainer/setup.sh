@@ -17,12 +17,13 @@ else
     mv cmdline-tools/ /usr/lib/android-sdk/
     chown $USER:$USER /usr/lib/android-sdk/ -R
     ln -s /usr/lib/android-sdk/cmdline-tools/latest/bin/sdkmanager /usr/sbin/sdkmanager
-    echo "cmdline-tools installed and sdkmanager symbolically linked to /usr/sbin/sdkmanager" 
+    ln -s /usr/lib/android-sdk/platform-tools/adb /usr/sbin/adb
+    echo "cmdline-tools installed"
+    echo "sdkmanager & adb symbolically linked" 
 fi
 # Update/accept licences
 yes | sdkmanager --update
 yes | sdkmanager --licenses
-sdkmanager "platforms;android-29"
 # Check for Chrome
 if [ -x  "/usr/bin/google-chrome" ]
 then

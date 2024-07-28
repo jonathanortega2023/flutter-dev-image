@@ -1,9 +1,12 @@
 {
     "name": "flutter_dev",
     "dockerFile": "Dockerfile",
-    "forwardPorts": [8080],
+    "forwardPorts": [
+        8080
+    ],
     "postCreateCommand": "/setup.sh",
     "extensions": [
+        "dart-code.dart-code",
         "dart-code.flutter"
     ]
 }
