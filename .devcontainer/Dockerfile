@@ -25,5 +25,3 @@ RUN /setup.sh
 
 # Switch back to the vscode user
 USER $USERNAME
-# Set the working directory
-WORKDIR /workspaces

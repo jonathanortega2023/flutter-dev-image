@@ -4,7 +4,7 @@
     "forwardPorts": [
         8080
     ],
-    "postCreateCommand": "/setup.sh && chown -R vscode:vscode /workspaces",
+    "postCreateCommand": "/setup.sh",
     "customizations": {
         "vscode": {
             "extensions": [
