@@ -2,6 +2,7 @@
 
 set -e
 
+USER=vscode
 ANDROID_SDK_DIR="/usr/lib/android-sdk"
 CMDLINE_TOOLS_DIR="$ANDROID_SDK_DIR/cmdline-tools"
 BUILD_TOOLS_VERSION="34.0.0"
@@ -18,16 +19,10 @@ if [ ! -d "$CMDLINE_TOOLS_DIR" ]; then
     mkdir -p $CMDLINE_TOOLS_DIR/latest
     mv /tmp/cmdline-tools/cmdline-tools/* $CMDLINE_TOOLS_DIR/latest/
     rm -rf /tmp/cmdline-tools commandlinetools.zip
-    chown -R $USER:$USER $ANDROID_SDK_DIR
     ln -sf $CMDLINE_TOOLS_DIR/latest/bin/sdkmanager /usr/sbin/sdkmanager
     ln -sf $ANDROID_SDK_DIR/platform-tools/adb /usr/sbin/adb
     echo "cmdline-tools installed and linked"
 fi
-
-# Update and accept licenses
-yes | sdkmanager --update
-yes | sdkmanager --licenses
-yes | sdkmanager "build-tools;$BUILD_TOOLS_VERSION"
 
 # Remove inconsistent build-tools directories
 if [ -d "$ANDROID_SDK_DIR/build-tools/debian" ]; then
@@ -38,9 +33,17 @@ if [ -d "$ANDROID_SDK_DIR/build-tools/29.0.3" ]; then
 fi
 echo "Removed inconsistent build-tools dirs"
 
+yes | sdkmanager "build-tools;$BUILD_TOOLS_VERSION"
+
+# Update and accept licenses
+yes | sdkmanager --update
+yes | sdkmanager --licenses
+
+
 # Install latest platform
-latest_platform=$(sdkmanager --list | grep "platforms;android-" | sort -V | tail -1 | awk '{print $1}')
+latest_platform=$(yes | sdkmanager --list | grep "platforms;android-" | sort -V | tail -1 | awk '{print $1}')
 yes | sdkmanager "$latest_platform"
+chown -R $USER:$USER $ANDROID_SDK_DIR
 echo "Installed latest platform"
 
 # Install Chrome if not already installed
@@ -86,7 +89,3 @@ if [ "$INSTALL_FLUTTERFIRE" = "true" ]; then
         echo "Firebase CLI already installed"
     fi
 fi
-
-# Ensure proper ownership of directories
-chown -R $USER:$USER $ANDROID_SDK_DIR
-chown -R $USER:$USER /workspaces

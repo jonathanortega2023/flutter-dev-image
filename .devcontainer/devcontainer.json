@@ -4,9 +4,21 @@
     "forwardPorts": [
         8080
     ],
-    "postCreateCommand": "/setup.sh",
-    "extensions": [
-        "dart-code.dart-code",
-        "dart-code.flutter"
-    ]
+    "postCreateCommand": "/setup.sh && chown -R vscode:vscode /workspaces",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "dart-code.dart-code",
+                "dart-code.flutter"
+            ],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "bash",
+                "terminal.integrated.profiles.linux": {
+                    "bash": {
+                        "path": "/bin/bash"
+                    }
+                }
+            }
+        }
+    },
 }
