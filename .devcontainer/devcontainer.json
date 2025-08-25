@@ -4,7 +4,6 @@
     "forwardPorts": [
         8080
     ],
-    "postCreateCommand": "/setup.sh",
     "customizations": {
         "vscode": {
             "extensions": [
@@ -22,5 +21,5 @@
                 }
             }
         }
-    },
+    }
 }

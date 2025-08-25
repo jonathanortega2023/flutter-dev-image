@@ -1,27 +1,57 @@
-# Use a Debian as a parent image
-FROM debian
+# Use Debian as the base image
+FROM debian:bookworm-slim
 
-# Prevents prompts from apt.
+# Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install necessary packages and clean up
+# Install system dependencies in a single layer
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends apt-utils wget unzip git curl clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev \
-    ca-certificates fonts-liberation libu2f-udev libvulkan1 xdg-utils libasound2 libnspr4 libnss3 android-sdk sudo && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends \
+        # Build essentials
+        build-essential \
+        clang \
+        cmake \
+        ninja-build \
+        pkg-config \
+        # Development tools
+        git \
+        curl \
+        wget \
+        unzip \
+        sudo \
+        # GTK development
+        libgtk-3-dev \
+        liblzma-dev \
+        # Chrome/Android dependencies
+        ca-certificates \
+        fonts-liberation \
+        libu2f-udev \
+        libvulkan1 \
+        xdg-utils \
+        libasound2 \
+        libnspr4 \
+        libnss3 \
+        # Android SDK (if available in repos)
+        android-sdk && \
+    # Clean up package cache
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
-# Create a non-root user and set permissions
+# Create non-root user with sudo privileges
 ARG USERNAME=vscode
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
-    && echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+RUN groupadd --gid $USER_GID $USERNAME && \
+    useradd --uid $USER_UID --gid $USER_GID -m $USERNAME && \
+    echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
+# Copy and execute setup script
 COPY setup.sh /setup.sh
-RUN chmod +x /setup.sh
-RUN /setup.sh
+RUN chmod +x /setup.sh && \
+    /setup.sh
 
-# Switch back to the vscode user
+# Switch to non-root user
 USER $USERNAME
+
+# Set working directory
+WORKDIR /workspace
