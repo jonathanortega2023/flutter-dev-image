@@ -2,14 +2,17 @@
 
 set -e
 
+DEBIAN_FRONTEND=noninteractive
 USER=vscode
 ANDROID_SDK_DIR="/usr/lib/android-sdk"
 CMDLINE_TOOLS_DIR="$ANDROID_SDK_DIR/cmdline-tools"
-BUILD_TOOLS_VERSION="34.0.0"
-CMDLINE_TOOLS_URL="https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
+BUILD_TOOLS_VERSION="35.0.0"
+CMDLINE_TOOLS_URL="https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip"
 FLUTTER_DIR="/usr/lib/flutter"
 FLUTTER_GIT_URL="https://github.com/flutter/flutter.git"
 CHROME_URL="https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
+
+git config --system --add safe.directory $FLUTTER_DIR
 
 # Install cmdline-tools if not already installed
 if [ ! -d "$CMDLINE_TOOLS_DIR" ]; then
@@ -41,7 +44,7 @@ yes | sdkmanager --licenses
 
 
 # Install latest platform
-latest_platform=$(yes | sdkmanager --list | grep "platforms;android-" | sort -V | tail -1 | awk '{print $1}')
+latest_platform=$(yes | sdkmanager --list | grep -E "platforms;android-[0-9]{2}" | grep -v "-ext" | sort -V | tail -1 | awk '{print $1}')
 yes | sdkmanager "$latest_platform"
 chown -R $USER:$USER $ANDROID_SDK_DIR
 echo "Installed latest platform"
