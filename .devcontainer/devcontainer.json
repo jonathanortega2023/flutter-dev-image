@@ -1,0 +1,28 @@
+{
+    "name": "flutter_dev",
+    "dockerFile": "../Dockerfile",
+    "forwardPorts": [
+        8080
+    ],
+    // "runArgs": [
+    //     "--network=host"
+    // ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "dart-code.dart-code",
+                "dart-code.flutter",
+                "alexisvt.flutter-snippets",
+                "marcelovelasquez.flutter-tree"
+            ],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "bash",
+                "terminal.integrated.profiles.linux": {
+                    "bash": {
+                        "path": "/bin/bash"
+                    }
+                }
+            }
+        }
+    }
+}
