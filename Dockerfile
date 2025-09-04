@@ -65,15 +65,18 @@ RUN mkdir -p $ANDROID_SDK_DIR/cmdline-tools/latest \
 # Install Firebase CLI and FlutterFire CLI (optional)
 # -------------------------
 RUN if [ "$FLUTTERFIRE" = "true" ]; then \
-        wget -O /usr/lib/firebase https://firebase.tools/bin/linux/latest && \
-        chmod +x /usr/lib/firebase && \
-        chown $USER_UID:$USER_GID /usr/lib/firebase && \
-        ln -sf /usr/lib/firebase /usr/sbin/firebase && \
-        dart pub global activate flutterfire_cli; \
+    wget -O /usr/lib/firebase https://firebase.tools/bin/linux/latest && \
+    chmod +x /usr/lib/firebase && \
+    chown $USER_UID:$USER_GID /usr/lib/firebase && \
+    ln -sf /usr/lib/firebase /usr/sbin/firebase; \
     fi
 
 WORKDIR /workspace
 USER $USERNAME
+
+RUN if [ "$FLUTTERFIRE" = "true" ]; then \
+    dart pub global activate flutterfire_cli; \
+    fi
 
 # -------------------------
 # Configure Flutter as the vscode user
