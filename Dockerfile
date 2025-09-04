@@ -45,10 +45,6 @@ RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd6
 # -------------------------
 RUN git config --system --add safe.directory $FLUTTER_DIR \
     && git clone -b stable https://github.com/flutter/flutter.git $FLUTTER_DIR \
-    && flutter precache \
-    && flutter config --no-enable-linux-desktop \
-    && flutter config --no-enable-macos-desktop \
-    && flutter config --no-enable-windows-desktop \
     && chown -R $USER_UID:$USER_GID $FLUTTER_DIR
 
 # -------------------------
@@ -79,4 +75,7 @@ RUN if [ "$FLUTTERFIRE" = "true" ]; then \
 WORKDIR /workspace
 USER $USERNAME
 
-RUN flutter doctor -v
+# -------------------------
+# Configure Flutter as the vscode user
+# -------------------------
+RUN flutter precache
