@@ -26,7 +26,7 @@ RUN groupadd --gid $USER_GID $USERNAME \
 RUN apt-get update --fix-missing && apt-get install -y --no-install-recommends \
     build-essential clang cmake ninja-build pkg-config \
     git curl wget unzip xz-utils zip libglu1-mesa \
-    libgtk-3-dev liblzma-dev \
+    libgtk-3-dev liblzma-dev mesa-utils \
     ca-certificates fonts-liberation libu2f-udev libvulkan1 xdg-utils libasound2 libnspr4 libnss3 \
     android-sdk \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
@@ -62,7 +62,7 @@ RUN mkdir -p $ANDROID_SDK_DIR/cmdline-tools/latest \
     && yes | sdkmanager --update \
     && yes | sdkmanager --licenses \
     && yes | sdkmanager "platform-tools" "build-tools;35.0.0" \
-    && yes | sdkmanager $(sdkmanager --list | grep -E "-ext" | grep -v "platforms;android-[0-9]{2}" | sort -V | tail -1 | awk '{print $1}') \
+    && yes | sdkmanager $(sdkmanager --list | grep -v "-ext" | grep -E "platforms;android-[0-9]{2}" | sort -V | tail -1 | awk '{print $1}') \
     && chown -R $USER_UID:$USER_GID $ANDROID_SDK_DIR
 
 # -------------------------
