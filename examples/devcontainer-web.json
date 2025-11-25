@@ -1,0 +1,21 @@
+{
+  "name": "Flutter Development (Web-only - no Android)",
+  "image": "jonathanortega2023/flutter_dev:web",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+      "extensions": [
+        "dart-code.dart-code",
+        "dart-code.flutter"
+      ]
+    }
+  },
+  "forwardPorts": [
+    8080,
+    3000
+  ],
+  "postCreateCommand": "flutter doctor",
+  "remoteUser": "vscode"
+}
